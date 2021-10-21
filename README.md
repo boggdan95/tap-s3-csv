@@ -95,6 +95,8 @@ An output record might look like:
 
 See below for an exhaustive list of configuration fields:
 
+- start_date could be formated as YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
+
 ```javascript
 {
     // your AWS credentials go here.
@@ -103,7 +105,7 @@ See below for an exhaustive list of configuration fields:
 
     // the start date to use on the first run. the tap outputs an updated state on each
     // run which you can use going forward for incremental replication
-    "start_date": "2017-05-01T00:00:00Z",
+    "start_date": "2017-05-01 00:00:00",
 
     // the bucket to use. make sure the AWS credentials provided have read access.
     "bucket": "csv-bucket",
@@ -129,6 +131,9 @@ See below for an exhaustive list of configuration fields:
 
             // format, either "csv"
             "format": "csv",
+
+            // delimiter
+            "delimiter": "|"
 
             // if the files don't have a header row, you can specify the field names
             "field_names": ["id", "first_name", "last_name"],

@@ -56,17 +56,29 @@ def get_input_files_for_table(config, table_spec, modified_since=None):
     pattern = table_spec['pattern']
     matcher = re.compile(pattern)
     modified_since = config['start_date']
-    time_stamp = " 00:00:00"
     modified_since = str(modified_since)
+    array_modified_since = modified_since.split()
+    modified_since_date = array_modified_since[0]
+
+    time_stamp = " 00:00:00"
+
+    format_date = "%Y-%m-d"
+    format_time = "%H:%M:%S"
+
     #Verified if the modified_since come as YYYY-MM-DD HH:MM:SS
     if time_stamp in modified_since:
         modified_since = modified_since
+        modified_since = datetime.strptime(modified_since, "%Y-%m-%d 00:00:00")
+    elif len(modified_since) > 10:
+        modified_since = modified_since
+        modified_since = datetime.strptime(modified_since, "%Y-%m-%d %H:%M:%S")
     else:
         modified_since += time_stamp
+        modified_since = datetime.strptime(modified_since, "%Y-%m-%d 00:00:00")
     logger.info('Format modified_since "{}"'.format(modified_since))
-    modified_since = datetime.strptime(modified_since, "%Y-%m-%d 00:00:00")
-    date_string = modified_since.strftime("%Y-%m-%d 00:00+00:00")
-    modified_since = datetime.strptime(date_string, "%Y-%m-%d 00:00+00:00")
+
+    date_string = modified_since.strftime("%Y-%m-%d %H:%M+00:%S")
+    modified_since = datetime.strptime(date_string, "%Y-%m-%d %H:%M+00:%S")
     logger.info('modified_since "{}"'.format(modified_since))
 
     logger.debug(
@@ -78,9 +90,9 @@ def get_input_files_for_table(config, table_spec, modified_since=None):
 
     for s3_object in s3_objects:
         key = s3_object['Key']
-        logger.info('Key "{}"'.format(key))
+        logger.debug('Key "{}"'.format(key))
         last_modified = s3_object['LastModified']
-        logger.info('Last modified: {}'.format(last_modified))
+        logger.debug('Last modified: {}'.format(last_modified))
         if(matcher.search(key) and
            (modified_since is None or modified_since < last_modified.replace(tzinfo=None))):
             logger.info('Will download key "{}"'.format(key))

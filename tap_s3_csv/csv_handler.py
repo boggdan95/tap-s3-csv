@@ -40,11 +40,6 @@ def get_row_iterator(table_spec, file_handle):
     if 'delimiter' in table_spec:
         delimiter = table_spec['delimiter']
 
-    logger.info('Fields')
-    logger.info(field_names)
-    logger.info('Delimitador')
-    logger.info(delimiter)
-
     reader = csv.DictReader(file_stream, fieldnames=field_names, delimiter=delimiter)
 
     return generator_wrapper(reader)
