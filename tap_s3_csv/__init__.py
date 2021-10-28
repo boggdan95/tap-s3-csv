@@ -12,6 +12,9 @@ import tap_s3_csv.format_handler
 from tap_s3_csv.logger import LOGGER as logger
 
 
+today = datetime.datetime.now()
+sync_date = today.strftime("%Y-%m-%d %H:%M:%S")
+
 def merge_dicts(first, second):
     to_return = first.copy()
 
@@ -104,8 +107,6 @@ def sync_table_file(config, s3_file, table_spec, schema, state):
 
     bucket = config['bucket']
     table_name = table_spec['name']
-    today = datetime.datetime.now()
-    sync_date = today.strftime("%Y-%m-%d %H:%M:%S")
 
     iterator = tap_s3_csv.format_handler.get_row_iterator(
         config, table_spec, s3_file)
