@@ -38,6 +38,9 @@ def get_sampled_schema_for_table(config, table_spec):
 
     samples = s3.sample_files(config, table_spec, s3_files)
 
+    if not samples:
+        return None
+
     metadata_schema = {
         '_s3_source_bucket': {'type': 'string'},
         '_s3_source_file': {'type': 'string'},
@@ -72,6 +75,16 @@ def sync_table(config, state, table_spec):
         return state
 
     inferred_schema = get_sampled_schema_for_table(config, table_spec)
+
+    if inferred_schema is None:
+        logger.info('All files for table "{}" are empty, skipping.'
+                    .format(table_name))
+        state[table_name] = {
+            'modified_since': s3_files[-1]['last_modified'].isoformat()
+        }
+        singer.write_state(state)
+        return state
+
     override_schema = {'properties': table_spec.get('schema_overrides', {})}
     schema = merge_dicts(
         inferred_schema,
@@ -128,6 +141,9 @@ def sync_table_file(config, s3_file, table_spec, schema, state):
         singer.write_state(state)
         records_synced += 1
 
+    if records_synced == 0:
+        logger.info('File "{}" skipped because of content: only columns'
+                    .format(s3_file))
 
     return records_synced
 

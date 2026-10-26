@@ -38,9 +38,16 @@ def sample_files(config, table_spec, s3_files,
     files_so_far = 0
 
     for s3_file in s3_files:
-        to_return += sample_file(config, table_spec, s3_file['key'],
-                                 sample_rate, max_records)
+        samples = sample_file(config, table_spec, s3_file['key'],
+                              sample_rate, max_records)
 
+        # files with only the header row yield no records; don't count them
+        if not samples:
+            logger.info('File "{}" skipped because of content: only columns'
+                        .format(s3_file['key']))
+            continue
+
+        to_return += samples
         files_so_far += 1
 
         if files_so_far >= max_files:
@@ -93,6 +100,9 @@ def get_input_files_for_table(config, table_spec, modified_since=None):
         logger.debug('Key "{}"'.format(key))
         last_modified = s3_object['LastModified']
         logger.debug('Last modified: {}'.format(last_modified))
+        if s3_object['Size'] == 0:
+            logger.info('Key "{}" skipped by size: 0kb'.format(key))
+            continue
         if(matcher.search(key) and
            (modified_since is None or modified_since < last_modified.replace(tzinfo=None))):
             logger.info('Will download key "{}"'.format(key))
